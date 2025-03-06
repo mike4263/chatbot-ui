@@ -115,6 +115,21 @@ export const FlyoutList: React.FunctionComponent<FlyoutListProps> = ({
     loadItems();
   };
 
+  const editSelectedItem = async () => {
+    if (selectedItem == null) {
+      console.error("no item selected");
+      return;
+    }
+
+    if (componentType == ComponentType.ASSISTANT) {
+      nextStep({editingAssistant: selectedItem});
+    } else if (componentType == ComponentType.KNOWLEDGE_SOURCE) {
+      nextStep({editingRetriever: selectedItem});
+    } else if (componentType == ComponentType.LLM_CONNECTION) {
+        nextStep({editingLlm: selectedItem});
+    }
+  };
+
   const loadItems = async () => {
     if (reloadList) {
       await getItems();
@@ -124,6 +139,7 @@ export const FlyoutList: React.FunctionComponent<FlyoutListProps> = ({
   };
 
   React.useEffect(() => {
+    setSelectedItem(null);
     setReloadList(true);
     loadItems();
   }, [componentType]);
@@ -148,12 +164,17 @@ export const FlyoutList: React.FunctionComponent<FlyoutListProps> = ({
 
   const onSelect = (_event: React.MouseEvent<Element, MouseEvent> | undefined, value) => {
     if (filteredItems.length > 0) {
-      const selectedItem = items.filter((item) => item.id === value)[0];
+      const selectedItem2 = items.filter((item) => item.id === value)[0];
 
-      setSelectedItem(selectedItem);
+      if (selectedItem2 === selectedItem) {
+        setSelectedItem(null);
+      }
+      else {
+        setSelectedItem(selectedItem2);
+      }
 
       if (componentType == ComponentType.ASSISTANT) {
-        updateFlyoutMenuSelectedChatbot(selectedItem);
+        updateFlyoutMenuSelectedChatbot(selectedItem2);
       }
       if (location.pathname !== '/') {
         navigate('/');
@@ -212,6 +233,9 @@ export const FlyoutList: React.FunctionComponent<FlyoutListProps> = ({
       <FlyoutFooter
         primaryButton={buttonText}
         onPrimaryButtonClick={onFooterButtonClick ?? nextStep}
+        thirdButton="Edit"
+        thirdButtonClick={editSelectedItem}
+        isThirdButtonDisabled={selectedItem == null}
         dangerSecondaryButton="Delete"
         onDangerSecondaryButtonClick={deleteSelectedItem}
       />

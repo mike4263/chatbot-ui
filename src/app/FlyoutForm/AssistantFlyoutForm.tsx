@@ -67,7 +67,7 @@ export const AssistantFlyoutForm: React.FunctionComponent<AssistantFlyoutFormPro
   const [prompt, setPrompt] = React.useState<string>();
   const [questions, setQuestions] = React.useState<string[]>([]);
   const [questionsValidated, setQuestionsValidated] = React.useState<questionsValidate>('default');
-  const { nextStep, prevStep, setReloadList } = useFlyoutWizard();
+  const { nextStep, prevStep, setReloadList, wizardData } = useFlyoutWizard();
   const { chatbots } = useAppData();
   const globalConfig = useConfig();
 
@@ -141,13 +141,44 @@ export const AssistantFlyoutForm: React.FunctionComponent<AssistantFlyoutFormPro
     loadData();
   }, []);
 
+  React.useEffect(() => {
+    if (wizardData.editingAssistant != undefined) {
+      const initialTitle = wizardData.editingAssistant.name ?? ""
+      setTitle(initialTitle);
+      handleTitleChange(null, initialTitle);
+
+      setDisplayName(wizardData.editingAssistant.displayName ?? wizardData.editingAssistant.name ?? "");
+      setDescription(wizardData.editingAssistant.description ?? "");
+      setPrompt(wizardData.editingAssistant.userPrompt);
+      setQuestions(wizardData.editingAssistant.exampleQuestions || []);
+
+      const llm : LLMAPIResponse = {
+        name: wizardData.editingAssistant.llmConnection?.name ?? "",
+        id: wizardData.editingAssistant.llmConnection?.id ?? "",
+        description: wizardData.editingAssistant.llmConnection?.description ?? "",
+      }
+      setSelectedLLM(llm);
+
+      const retriever : RetrieverAPIResponse = {
+        id: wizardData.editingAssistant.retrieverConnection?.id ?? "",
+        name: wizardData.editingAssistant.retrieverConnection?.name ?? "",
+        description: wizardData.editingAssistant.retrieverConnection?.description ?? "",
+        connectionEntity: wizardData.editingAssistant.retrieverConnection?.connectionEntity ?? "",
+      }
+      setSelectedRetriever(retriever);
+
+    }
+  }, [wizardData.editingAssistant]);
+
   const chatbotExists = (title: string) => {
     return chatbots.filter((chatbot) => chatbot.name === title).length >= 1;
   };
 
   const handleTitleChange = (_event, title: string) => {
     setTitle(title);
-    if (title.trim() === '') {
+    if (wizardData.editingAssistant !== undefined && wizardData.editingAssistant.id !== null) {
+      setValidated('success');
+    } else if (title.trim() === '') {
       setValidated('default');
     } else if (!chatbotExists(title)) {
       setValidated('success');
@@ -217,15 +248,32 @@ export const AssistantFlyoutForm: React.FunctionComponent<AssistantFlyoutFormPro
 
   const createAssistant = async () => {
     const url = globalConfig?.REACT_APP_BASE_URL + '/admin/assistant/' || '';
-    const payload = {
+    const payload: {
+      id?: string;
+      name: string;
+      displayName: string;
+      description: string;
+      llmConnectionId?: string;
+      retrieverConnectionId?: string;
+      userPrompt?: string;
+      exampleQuestions?: string[];
+    } = {
       name: title,
       displayName: displayName ?? title,
       description: description,
       llmConnectionId: selectedLLM?.id,
-      retrieverConnectionId: selectedRetriever?.id,
       userPrompt: prompt,
       exampleQuestions: questions,
     };
+
+    if ( wizardData.editingAssistant != undefined) {
+      payload.id = wizardData.editingAssistant.id;
+    }
+
+    // support assistants without RAG
+    if (selectedRetriever && selectedRetriever.id !== "") {
+      payload.retrieverConnectionId = selectedRetriever.id;
+    }
 
     try {
       // handle if no llms
@@ -289,6 +337,7 @@ export const AssistantFlyoutForm: React.FunctionComponent<AssistantFlyoutFormPro
                 name="flyout-form-title"
                 value={title}
                 onChange={handleTitleChange}
+                isDisabled={wizardData.editingAssistant !== undefined && wizardData.editingAssistant.id !== null}
               />
               <FormHelperText>
                 <HelperText>
@@ -445,7 +494,7 @@ export const AssistantFlyoutForm: React.FunctionComponent<AssistantFlyoutFormPro
       {!error && (
         <FlyoutFooter
           isPrimaryButtonDisabled={title === '' || (llms.length > 0 && !selectedLLM) || validated !== 'success'}
-          primaryButton="Create assistant"
+          primaryButton={wizardData.editingAssistant !== undefined && wizardData.editingAssistant.id !== null ?  "Update assistant" : "Create assistant"}
           onPrimaryButtonClick={onClick}
           secondaryButton="Cancel"
           onSecondaryButtonClick={prevStep}

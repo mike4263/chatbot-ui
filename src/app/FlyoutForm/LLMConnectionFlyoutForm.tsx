@@ -37,15 +37,15 @@ const SERVING_RUNTIME_TYPE = ['openai'];
 
 export const LLMConnectionFlyoutForm: React.FunctionComponent<LLMConnectionFlyoutFormProps> = ({ header, hideFlyout }: LLMConnectionFlyoutFormProps) => {
   const [isLoading, setIsLoading] = React.useState(true);
-  
+
   const [validated, setValidated] = React.useState<validate>('default');
   const [error, setError] = React.useState<ErrorObject>();
-  const { nextStep, prevStep } = useFlyoutWizard();
+  const { nextStep, prevStep, wizardData } = useFlyoutWizard();
 
   // UI State
   const [isModelTypeOpen, setIsModelTypeOpen] = React.useState(false);
   const [isServingRuntimeTypeOpen, setIsServingRuntimeTypeOpen] = React.useState(false);
-  
+
   // Form Fields
   const [name, setName] = React.useState('');
   const [description, setDescription] = React.useState('');
@@ -80,7 +80,7 @@ export const LLMConnectionFlyoutForm: React.FunctionComponent<LLMConnectionFlyou
       setValidated('success');
     }
   }
-  
+
   const handleNameChange = (_event, name: string) => {
     setName(name);
   };
@@ -124,7 +124,7 @@ export const LLMConnectionFlyoutForm: React.FunctionComponent<LLMConnectionFlyou
 
   const createLLMConnection = async () => {
 
-    const payload : LLMConnection = 
+    const payload : LLMConnection =
     {
       name: name,
       description: description,
@@ -137,10 +137,14 @@ export const LLMConnectionFlyoutForm: React.FunctionComponent<LLMConnectionFlyou
       maxTokens: maxTokens
     }
 
+    if (wizardData.editingLlm != undefined) {
+      payload.id = wizardData.editingLlm.id;
+    }
+
     try {
       return await llmConnectionAPI.createOrUpdateLlmConnection(payload);
     } catch (error) {
-      console.error('Error creating retriever:', error);  
+      console.error('Error creating retriever:', error);
       const axiosError: AxiosError = error as AxiosError;
       const response = axiosError.response;
 
@@ -155,7 +159,7 @@ export const LLMConnectionFlyoutForm: React.FunctionComponent<LLMConnectionFlyou
       } else {
         setError({ title: 'Error creating retriever', body: axiosError?.message });
       }
-      
+
       console.error('Error creating retriever:', error);
     }
   };
@@ -191,6 +195,23 @@ export const LLMConnectionFlyoutForm: React.FunctionComponent<LLMConnectionFlyou
     // For now we don't need to do anything on
     setIsLoading(false);
   }, []);
+
+  React.useEffect(() => {
+    if (wizardData.editingLlm != undefined) {
+      console.log("loading llm elements");
+      setName(wizardData.editingLlm.name ?? "");
+      setDescription(wizardData.editingLlm.description ?? "");
+      setModelType(wizardData.editingLlm.modelType ?? "");
+      setServingRuntimeType(wizardData.editingLlm.servingRuntimeType ?? "");
+      setModelName(wizardData.editingLlm.modelName ?? "");
+      setUrl(wizardData.editingLlm.url ?? "");
+      // This isn't being returned by the API
+      setApiKey(wizardData.editingLlm.apiKey ?? "");
+      setTemperatureString(wizardData.editingLlm.temperature?.toString() ?? "");
+      setTemperature(wizardData.editingLlm.temperature ?? 0.0);
+      setMaxTokens(wizardData.editingLlm.maxTokens ?? 0);
+    }
+  }, [wizardData.editingLlm]);
 
   return isLoading ? (
     <FlyoutLoading />
@@ -371,7 +392,7 @@ export const LLMConnectionFlyoutForm: React.FunctionComponent<LLMConnectionFlyou
       {!error && (
         <FlyoutFooter
           isPrimaryButtonDisabled={validated !== 'success'}
-          primaryButton="Create LLM Connection"
+          primaryButton={wizardData.editingLlm !== undefined && wizardData.editingLlm.id !== null ?  "Update LLM Connection" : "Create LLM Connection"}
           onPrimaryButtonClick={onClick}
           secondaryButton="Cancel"
           onSecondaryButtonClick={prevStep}

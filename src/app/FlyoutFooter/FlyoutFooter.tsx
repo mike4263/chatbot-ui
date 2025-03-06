@@ -9,7 +9,10 @@ interface FlyoutFooterProps {
   onSecondaryButtonClick?: () => void;
   dangerSecondaryButton?: string;
   onDangerSecondaryButtonClick?: () => void;
+  thirdButton?: string;
+  thirdButtonClick?: () => void;
   isPrimaryButtonDisabled?: boolean;
+  isThirdButtonDisabled?: boolean;
 }
 export const FlyoutFooter: React.FunctionComponent<FlyoutFooterProps> = ({
   primaryButton,
@@ -17,8 +20,11 @@ export const FlyoutFooter: React.FunctionComponent<FlyoutFooterProps> = ({
   secondaryButton,
   onSecondaryButtonClick,
   dangerSecondaryButton,
+  thirdButtonClick,
+  thirdButton,
   onDangerSecondaryButtonClick,
   isPrimaryButtonDisabled,
+  isThirdButtonDisabled,
 }: FlyoutFooterProps) => {
   return (
     <div className="flyout-footer">
@@ -33,6 +39,13 @@ export const FlyoutFooter: React.FunctionComponent<FlyoutFooterProps> = ({
             {dangerSecondaryButton}
           </Button>
         )}
+
+        {thirdButton && thirdButtonClick && (
+          <Button isDisabled={isThirdButtonDisabled} variant="tertiary" onClick={thirdButtonClick}>
+            {thirdButton}
+          </Button>
+        )}
+
         <Button isDisabled={isPrimaryButtonDisabled} onClick={onPrimaryButtonClick}>
           {primaryButton}
         </Button>

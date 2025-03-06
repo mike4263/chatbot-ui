@@ -34,11 +34,11 @@ export const KnowledgeSourceFlyoutForm: React.FunctionComponent<KnowledgeSourceF
 
   const [validated, setValidated] = React.useState<validate>('default');
   const [error, setError] = React.useState<ErrorObject>();
-  const { nextStep, prevStep } = useFlyoutWizard();
+  const { nextStep, prevStep, wizardData } = useFlyoutWizard();
 
   // UI State
   const [isKnowledgeSourceOpen, setIsKnowledgeSourceOpen] = React.useState(false);
-  
+
   // Form Fields
   const [name, setName] = React.useState('');
   const [description, setDescription] = React.useState('');
@@ -68,7 +68,7 @@ export const KnowledgeSourceFlyoutForm: React.FunctionComponent<KnowledgeSourceF
       setValidated('success');
     }
   }
-  
+
   const handleNameChange = (_event, name: string) => {
     setName(name);
   };
@@ -108,7 +108,7 @@ export const KnowledgeSourceFlyoutForm: React.FunctionComponent<KnowledgeSourceF
       contentRetrieverType: "elasticsearch"
     }
 
-    const payload : CreateRetrieverConnectionRequest = 
+    const payload : CreateRetrieverConnectionRequest =
     {
       name: name.trim() === '' ? undefined : name,
       description: description.trim() === '' ? undefined : description,
@@ -119,7 +119,7 @@ export const KnowledgeSourceFlyoutForm: React.FunctionComponent<KnowledgeSourceF
     try {
       return await knowledgeSourceAPI.createOrUpdateRetrieverConnection(payload);
     } catch (error) {
-      console.error('Error creating retriever:', error);  
+      console.error('Error creating retriever:', error);
       const axiosError: AxiosError = error as AxiosError;
       const response = axiosError.response;
 
@@ -134,7 +134,7 @@ export const KnowledgeSourceFlyoutForm: React.FunctionComponent<KnowledgeSourceF
       } else {
         setError({ title: 'Error creating retriever', body: axiosError?.message });
       }
-      
+
       console.error('Error creating retriever:', error);
     }
   };
@@ -161,6 +161,17 @@ export const KnowledgeSourceFlyoutForm: React.FunctionComponent<KnowledgeSourceF
     // For now we don't need to do anything on
     setIsLoading(false);
   }, []);
+
+  React.useEffect(() => {
+    if (wizardData.editingRetriever != undefined) {
+      console.log("loading retriver elements");
+      setName(wizardData.editingRetriever.name ?? "");
+      setDescription(wizardData.editingRetriever.description ?? "");
+      setEmbeddingType(wizardData.editingRetriever.embeddingType ?? "");
+      setIndex(wizardData.editingRetriever.connectionEntity.index ?? "");
+      setHost(wizardData.editingRetriever.connectionEntity.host ?? "");
+    }
+  }, [wizardData.editingRetriever]);
 
   return isLoading ? (
     <FlyoutLoading />
@@ -313,7 +324,7 @@ export const KnowledgeSourceFlyoutForm: React.FunctionComponent<KnowledgeSourceF
       {!error && (
         <FlyoutFooter
           isPrimaryButtonDisabled={validated !== 'success'}
-          primaryButton="Create Knowledge Source"
+          primaryButton={wizardData.editingRetriever !== undefined && wizardData.editingRetriever.id !== null ?  "Update Knowledge Source" : "Create Knowledge Source"}
           onPrimaryButtonClick={onClick}
           secondaryButton="Cancel"
           onSecondaryButtonClick={prevStep}
