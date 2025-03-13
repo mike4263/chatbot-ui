@@ -12,19 +12,18 @@ import {
   SkipToContent,
 } from '@patternfly/react-core';
 import { BarsIcon } from '@patternfly/react-icons';
-import logo from '@app/bgimages/Logo-Red_Hat-Composer_AI_Studio-A-Standard-RGB.svg';
-import logoDark from '@app/bgimages/Logo-Red_Hat-Composer_AI_Studio-A-Reverse.svg';
+import { Properties } from '@app/Properties';
 import { SidebarWithFlyout } from '@app/SidebarWithFlyout/SidebarWithFlyout';
 import { AppDataProvider } from '@app/AppData/AppDataContext';
 
 const AppLayout: React.FunctionComponent = () => {
-  const [sidebarOpen, setSidebarOpen] = React.useState(true);
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
   // If you close the sidebar on mobile and go back to desktop, you lose it forever (or at least until reload)
   // This forces it to reopen if that happens.
   React.useEffect(() => {
     const updateSidebar = () => {
-      if (window.innerWidth >= 1200) {
+      if (window.innerWidth >= 1200 && !Properties.disableSidebar) {
         setSidebarOpen(true);
       }
     };
@@ -35,9 +34,10 @@ const AppLayout: React.FunctionComponent = () => {
     };
   }, []);
 
-  const masthead = (
+  const masthead =  ( disableSidebar: boolean ) => (
     <Masthead display={{ default: 'inline' }}>
       <MastheadMain>
+        { !disableSidebar &&
         <MastheadToggle>
           <Button
             icon={<BarsIcon />}
@@ -46,13 +46,14 @@ const AppLayout: React.FunctionComponent = () => {
             aria-label="Global navigation"
           />
         </MastheadToggle>
+        }
         <MastheadBrand data-codemods>
           <MastheadLogo data-codemods>
             <div className="show-light">
-              <Brand src={logo} alt="Red Hat Composer AI Studio" heights={{ default: '36px' }} />
+              <Brand src={Properties.logoWhiteUrl} alt="Red Hat Composer AI Studio" heights={{ default: '36px' }} />
             </div>
             <div className="show-dark">
-              <Brand src={logoDark} alt="Red Hat Composer AI Studio" heights={{ default: '36px' }} />
+              <Brand src={Properties.logoDarkUrl} alt="Red Hat Composer AI Studio" heights={{ default: '36px' }} />
             </div>
           </MastheadLogo>
         </MastheadBrand>
@@ -82,7 +83,7 @@ const AppLayout: React.FunctionComponent = () => {
       <Page
         className="chatbot-ui-page"
         mainContainerId={pageId}
-        masthead={masthead}
+        masthead={masthead(Properties.disableSidebar)}
         sidebar={sidebarOpen && Sidebar}
         skipToContent={PageSkipToContent}
         isContentFilled

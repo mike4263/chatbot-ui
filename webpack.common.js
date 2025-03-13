@@ -123,6 +123,8 @@ module.exports = (env) => {
           { from: './src/favicon.ico', to: 'images' },
           { from: './src/favicon.svg', to: 'images' },
           { from: './src/favicon.png', to: 'images' },
+          { from: './src/app/bgimages/Logo-Red_Hat-Composer_AI_Studio-A-Reverse.svg', to: 'images' },
+          { from: './src/app/bgimages/Logo-Red_Hat-Composer_AI_Studio-A-Standard-RGB.svg', to: 'images' },
           { from: './src/apple-touch-icon.png', to: 'images' },
           { from: './src/favicon-48x48.png', to: 'images' },
           { from: './src/web-app-manifest-192x192.png', to: 'images' },

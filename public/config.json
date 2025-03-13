@@ -1,3 +1,6 @@
 {
-  "REACT_APP_BASE_URL": "https://quarkus-llm-router-rhsaia-v2-dev.apps.rhsaia.vg6c.p1.openshiftapps.com"
+  "REACT_APP_BASE_URL": "https://quarkus-llm-router-rhsaia-v2-dev.apps.rhsaia.vg6c.p1.openshiftapps.com",
+  "LOGO_PATH_LIGHT": "./images/Logo-Red_Hat-Composer_AI_Studio-A-Standard-RGB.svg",
+  "LOGO_PATH_DARK": "./images/Logo-Red_Hat-Composer_AI_Studio-A-Reverse.svg",
+  "DISABLE_SIDE_MENU": "false"
 }
